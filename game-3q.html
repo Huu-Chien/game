@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Công Cụ Tính Điểm Lẩu 4 Pro - Danh Tướng 3Q</title>
+    <style>
+        /* ==========================================================================
+           CSS CHUNG (CẢ PC VÀ ĐIỆN THOẠI)
+           ========================================================================== */
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; /* Font chữ hiện đại, sắc nét hơn */
+            background-color: #f0f3f6; /* Màu nền xám nhạt trung tính */
+            padding: 20px; 
+            margin: 0; 
+            color: #333; 
+        }
+
+        /* Khung chứa các bảng (Dashboard) */
+        .dashboard { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; /* Mặc định 2 cột trên PC */
+            gap: 25px; /* Khoảng cách giữa các bảng rộng rãi */
+            max-width: 1200px; 
+            margin: auto; 
+            padding-bottom: 50px; /* Thêm khoảng trống ở đáy */
+        }
+
+        /* Phong cách cho mỗi bảng (Card) - Giống file đầu tiên nhưng tinh tế hơn */
+        .card { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 12px; /* Bo góc mềm mại hơn */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08); /* Đổ bóng nhẹ nhàng, chuyên nghiệp */
+            transition: transform 0.2s; /* Hiệu ứng khi lướt qua */
+        }
+        .card:hover { transform: translateY(-3px); /* Nhẹ nhàng nổi lên khi rê chuột trên PC */ }
+
+        /* Tiêu đề bảng */
+        h3 { 
+            text-align: center; 
+            font-size: 1.1rem; 
+            color: #2c3e50; 
+            margin-top: 0; 
+            margin-bottom: 15px; 
+            padding-bottom: 10px; 
+            border-bottom: 2px solid #eee; /* Đường kẻ phân cách */
+        }
+        
+        /* Bảng số liệu */
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-bottom: 10px; 
+            font-size: 14px; 
+            background-color: #fff;
+        }
+        th, td { 
+            border: 1px solid #e1e8ed; /* Đường kẻ bảng nhạt hơn, dễ nhìn */
+            padding: 12px 8px; /* Khoảng cách trong ô rộng rãi hơn */
+            text-align: center; 
+            vertical-align: middle;
+        }
+        th { 
+            background-color: #f8fafc; /* Nền tiêu đề bảng nhạt hơn */
+            color: #495057; 
+            font-weight: 600; 
+        }
+        tr:nth-child(even) td { background-color: #fafbfc; /* Màu nền xen kẽ hàng cho đỡ mỏi mắt */ }
+        
+        /* ==========================================================================
+           CSS CHO Ô NHẬP LIỆU MÀU ĐỎ (Ô CỰC QUAN TRỌNG)
+           ========================================================================== */
+        input.input-red { 
+            width: 85%; 
+            border: 1px solid #ffcccc; /* Viền hồng nhạt ban đầu */
+            border-radius: 6px; 
+            padding: 8px 5px; /* Tăng độ cao ô để dễ bấm trên điện thoại */
+            text-align: center; 
+            font-size: 16px; /* Chữ to hơn chút */
+            color: #ff0000 !important; /* CHỮ ĐỎ TƯƠI ĐẬM */
+            font-weight: bold; 
+            outline: none;
+            background-color: #fffafa; /* Nền hơi hồng nhẹ */
+            transition: all 0.3s;
+        }
+        /* Hiệu ứng khi nhấn vào ô nhập liệu - Giống Excel nhưng đẹp hơn */
+        input.input-red:focus { 
+            border: 2px solid #ff0000; /* Viền đỏ đậm */
+            background-color: #fff9db; /* Nền vàng giống Excel để làm nổi bật */
+            box-shadow: 0 0 8px rgba(255, 0, 0, 0.2); /* Đổ bóng đỏ nhẹ */
+        }
+
+        /* Các lớp CSS hỗ trợ định dạng */
+        .total-row { font-weight: bold; background-color: #f1f3f5 !important; }
+        .total-row td { border-top: 2px solid #ddd; }
+        .highlight-red { color: #ff0000; font-weight: bold; font-size: 16px; }
+        .label-cell { text-align: left; padding-left: 15px; }
+
+        /* Kiểu dáng cho ô kết quả quan trọng nhất (Số ngọc cần bung) */
+        #gems_needed_cell { 
+            background-color: #fff9db !important; 
+            border: 2px solid red !important; 
+            border-radius: 8px;
+            font-size: 1.3rem; 
+            padding: 15px 5px;
+        }
+
+        /* ==========================================================================
+           CSS MEDIA QUERIES - ĐIỀU CHỈNH KHI VỀ ĐIỆN THOẠI
+           ========================================================================== */
+        @media (max-width: 768px) {
+            /* 1. Chuyển dashboard về 1 cột */
+            .dashboard { 
+                grid-template-columns: 1fr; 
+                gap: 15px; /* Giảm khoảng cách để gọn màn hình */
+                padding: 10px; 
+            }
+
+            /* 2. ẨN BẢNG THAM KHẢO (BẢNG 1 VÀ BẢNG 3) */
+            #card-ref-lau4, #card-ref-prices { 
+                display: none; 
+            }
+
+            /* 3. TỐI ƯU HÓA 2 BẢNG CÒN LẠI CHO ĐIỆN THOẠI */
+            .card { 
+                padding: 15px; 
+                border-radius: 8px; 
+            }
+            h3 { font-size: 1rem; margin-bottom: 10px; }
+            
+            /* Tăng kích thước chữ trong bảng một chút cho dễ đọc */
+            table { font-size: 13px; }
+            th, td { padding: 8px 4px; }
+            
+            /* Ô nhập liệu to hơn để dễ gõ bằng ngón tay */
+            input.input-red { 
+                width: 90%; 
+                font-size: 18px; 
+                padding: 10px 5px; 
+            }
+
+            /* Bảng kết quả: Bố cục dọc cho gọn */
+            #card-results table td { display: block; text-align: center; border: none; }
+            #card-results table td:nth-child(1) { padding-bottom: 5px; font-weight: normal; }
+            #card-results table td:nth-child(2) { padding-top: 0; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+            #card-results table tr:last-child td:nth-child(2) { border-bottom: none; }
+            
+            #gems_needed_cell { font-size: 1.5rem; padding: 15px 5px; }
+            #final_current, #missing_points { font-size: 1.3rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard">
+    <div class="card" id="card-ref-lau4">
+        <h3>Điểm ăn lẩu 4</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>STT</th><th>Loại</th><th>Số lượng</th><th>Điểm / cái</th><th>Tổng</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>1</td><td>Nấm (NV)</td><td>1020</td><td>3</td><td>3060</td></tr>
+                <tr><td>2</td><td>Nấm (Đ.Danh)</td><td>600</td><td>3</td><td>1800</td></tr>
+                <tr><td>3</td><td>Nấm (Lẩu 4)</td><td>900</td><td>3</td><td>2700</td></tr>
+                <tr><td>4</td><td>Hải sản (Top 1)</td><td>30</td><td>100</td><td>3000</td></tr>
+            </tbody>
+            <tfoot>
+                <tr class="total-row">
+                    <td colspan="4">Tổng điểm nhận thêm</td><td>10560</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <div class="card" id="card-inputs">
+        <h3>Điểm lẩu hiện tại (Nhập số vào ô đỏ)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Loại</th><th style="color: red;">Số lượng</th><th>Điểm / cái</th><th>Tổng</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Nấm</td>
+                    <td><input type="number" class="input-red" id="qty_nam" placeholder="0" oninput="updateAll()"></td>
+                    <td>3</td>
+                    <td id="res_nam">0</td>
+                </tr>
+                <tr>
+                    <td>Hải sản</td>
+                    <td><input type="number" class="input-red" id="qty_haisan" placeholder="0" oninput="updateAll()"></td>
+                    <td>100</td>
+                    <td id="res_haisan">0</td>
+                </tr>
+                <tr>
+                    <td>Ớt</td>
+                    <td><input type="number" class="input-red" id="qty_ot" placeholder="0" oninput="updateAll()"></td>
+                    <td>8000</td>
+                    <td id="res_ot">0</td>
+                </tr>
+                <tr>
+                    <td>Gầu bò</td>
+                    <td><input type="number" class="input-red" id="qty_gaubo" placeholder="0" oninput="updateAll()"></td>
+                    <td>10</td>
+                    <td id="res_gaubo">0</td>
+                </tr>
+                <tr>
+                    <td>Sườn</td>
+                    <td><input type="number" class="input-red" id="qty_suon" placeholder="0" oninput="updateAll()"></td>
+                    <td>100</td>
+                    <td id="res_suon">0</td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr class="total-row">
+                    <td colspan="3">Tổng điểm lẩu hiện có</td>
+                    <td id="total_current">0</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <div class="card" id="card-ref-prices">
+        <h3>Các loại đồ lẩu khác</h3>
+        <table>
+            <thead>
+                <tr><th>STT</th><th>Loại</th><th>Giá</th><th>Điểm / cái</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>1</td><td>Ớt</td><td>2,000,000đ</td><td>8000</td></tr>
+                <tr><td>2</td><td>Gầu bò</td><td>9 Ngọc</td><td>10</td></tr>
+                <tr><td>3</td><td>Sườn</td><td>Sự kiện</td><td>100</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card" id="card-results">
+        <h3>Tính toán ngọc cần bung</h3>
+        <table style="border: none;">
+            <tbody>
+                <tr>
+                    <td class="label-cell">Cần đủ 216k điểm<br><span style="font-size: 12px; color: #777;">Quy đổi: 10đ = 9 ngọc (0.9 ngọc/đ)</span></td>
+                    <td class="highlight-red">Điểm hiện tại<br><span id="final_current">0</span></td>
+                </tr>
+                <tr>
+                    <td class="label-cell"><b>Điểm còn thiếu</b></td>
+                    <td id="missing_points" class="highlight-red">0</td>
+                </tr>
+                <tr>
+                    <td class="label-cell"><b>Số ngọc cần bung</b></td>
+                    <td id="gems_needed_cell"><span id="gems_needed" class="highlight-red">0</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    /* ==========================================================================
+       JAVASCRIPT TÍNH TOÁN - GIỮ NGUYÊN TỶ LỆ CŨ
+       ========================================================================== */
+    function updateAll() {
+        // Lấy số lượng nhập vào (mặc định là 0 nếu để trống)
+        const nấm = parseFloat(document.getElementById('qty_nam').value) || 0;
+        const haisan = parseFloat(document.getElementById('qty_haisan').value) || 0;
+        const ot = parseFloat(document.getElementById('qty_ot').value) || 0;
+        const gaubo = parseFloat(document.getElementById('qty_gaubo').value) || 0;
+        const suon = parseFloat(document.getElementById('qty_suon').value) || 0;
+
+        // Tính tổng điểm cho từng loại
+        const t_nam = nấm * 3;
+        const t_haisan = haisan * 100;
+        const t_ot = ot * 8000;
+        const t_gaubo = gaubo * 10;
+        const t_suon = suon * 100;
+
+        // Cập nhật điểm cho từng loại ở Bảng 2
+        document.getElementById('res_nam').innerText = t_nam.toLocaleString('vi-VN');
+        document.getElementById('res_haisan').innerText = t_haisan.toLocaleString('vi-VN');
+        document.getElementById('res_ot').innerText = t_ot.toLocaleString('vi-VN');
+        document.getElementById('res_gaubo').innerText = t_gaubo.toLocaleString('vi-VN');
+        document.getElementById('res_suon').innerText = t_suon.toLocaleString('vi-VN');
+
+        // Tính tổng điểm lẩu hiện tại
+        const total = t_nam + t_haisan + t_ot + t_gaubo + t_suon;
+        const formattedTotal = total.toLocaleString('vi-VN');
+        document.getElementById('total_current').innerText = formattedTotal;
+        
+        // Cập nhật điểm hiện tại xuống Bảng 4
+        document.getElementById('final_current').innerText = formattedTotal;
+
+        // Tính điểm còn thiếu (Mục tiêu 216,000)
+        const target = 216000;
+        let missing = target - total;
+        if (missing < 0) missing = 0; // Nếu dư điểm thì thiếu = 0
+        
+        // Tính số ngọc cần bung (Tỷ lệ 10 điểm = 9 ngọc -> 1 điểm = 0.9 ngọc)
+        const gems = missing * 0.9;
+
+        // Hiển thị kết quả điểm thiếu và ngọc cần với định dạng số Việt Nam
+        document.getElementById('missing_points').innerText = missing.toLocaleString('vi-VN');
+        // Làm tròn ngọc về số nguyên cho gọn (có thể đổi thành '.1f' nếu muốn hiện 1 số thập phân)
+        document.getElementById('gems_needed').innerText = gems.toLocaleString('vi-VN', {maximumFractionDigits: 0});
+    }
+
+    // Chạy hàm lần đầu để đảm bảo các giá trị 0 được định dạng đúng
+    updateAll();
+</script>
+
+</body>
+</html>
