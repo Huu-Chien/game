@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Siêu Thị Toán Học - Mega Market</title>
+    <style>
+        :root { --cell: 55px; --market-green: #2ecc71; --shelf-color: #d2b48c; }
+        body { background-color: #f0f2f5; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        
+        /* Bảng chỉ số */
+        #status {
+            display: flex; gap: 40px; background: white; padding: 20px 50px;
+            border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px; font-size: 24px; font-weight: bold;
+            border-bottom: 5px solid var(--market-green);
+        }
+
+        .main-layout { display: flex; gap: 30px; }
+
+        /* BẢN ĐỒ SIÊU THỊ */
+        #grid {
+            display: grid; grid-template-columns: repeat(10, var(--cell));
+            grid-template-rows: repeat(10, var(--cell));
+            gap: 2px; background: #eee; border: 10px solid #34495e; border-radius: 10px;
+        }
+
+        .cell { width: var(--cell); height: var(--cell); background: white; display: flex; justify-content: center; align-items: center; font-size: 32px; }
+        .player::after { content: "🛒"; }
+        .atm { background: #e74c3c !important; border-radius: 5px; }
+        .atm::after { content: "🏧"; }
+        .shelf { background: var(--shelf-color) !important; border: 1px solid #bc8f8f; }
+        .item-on-shelf::after { content: attr(data-emoji); }
+
+        /* DANH SÁCH ĐÃ MUA */
+        #cart-panel {
+            width: 280px; background: white; padding: 20px; border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 2px solid var(--market-green);
+        }
+        .cart-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #ccc; }
+
+        /* MODAL CÂU HỎI */
+        #quiz-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center;
+        }
+        .quiz-card { background: white; padding: 30px; border-radius: 20px; text-align: center; width: 350px; }
+        .ans-btn { display: block; width: 100%; margin: 10px 0; padding: 12px; border-radius: 10px; border: 1px solid #ddd; cursor: pointer; font-size: 18px; transition: 0.2s; }
+        .ans-btn:hover { background: var(--market-green); color: white; }
+    </style>
+</head>
+<body>
+
+    <h1 style="color: #2c3e50;">🏪 SIÊU THỊ TOÁN HỌC 🍎</h1>
+
+    <div id="status">
+        <span style="color: #27ae60;">💰 Ví: <span id="money">0</span>$</span>
+        <span style="color: #e74c3c;">❤️ HP: <span id="hp">100</span></span>
+    </div>
+
+    <div class="main-layout">
+        <div id="grid"></div>
+
+        <div id="cart-panel">
+            <h3 style="text-align: center; color: var(--market-green);">GIỎ HÀNG CỦA BẠN</h3>
+            <div id="cart-content">
+                <p style="text-align: center; color: #999;">Chưa có món đồ nào...</p>
+            </div>
+            <hr>
+            <div style="font-weight: bold; display: flex; justify-content: space-between;">
+                <span>Tổng cộng:</span>
+                <span id="total-price">0$</span>
+            </div>
+        </div>
+    </div>
+
+    <p style="margin-top: 15px; color: #666;">Di chuyển 🛒 đến 🏧 để giải toán kiếm tiền, đến kệ hàng để mua đồ ăn!</p>
+
+    <div id="quiz-bg">
+        <div class="quiz-card">
+            <h2 style="color: #e67e22;">🏧 NẠP TIỀN VÀO VÍ</h2>
+            <p id="question" style="font-size: 20px; font-weight: bold;"></p>
+            <div id="answers"></div>
+        </div>
+    </div>
+
+    <script>
+        const gridSide = 10;
+        let player = { x: 0, y: 0, money: 0, hp: 100 };
+        let cart = [];
+
+        // Dữ liệu hàng hóa
+        const foods = [
+            { emoji: "🍗", name: "Gà quay", price: 60, x: 2, y: 2 },
+            { emoji: "🍣", name: "Sushii", price: 90, x: 2, y: 3 },
+            { emoji: "🍉", name: "Dưa hấu", price: 30, x: 2, y: 4 },
+            { emoji: "🍕", name: "Pizza", price: 50, x: 7, y: 2 },
+            { emoji: "🍔", name: "Burger", price: 40, x: 7, y: 3 },
+            { emoji: "🍦", name: "Kem", price: 15, x: 7, y: 4 },
+            { emoji: "🥦", name: "Rau xanh", price: 10, x: 4, y: 7 },
+            { emoji: "🥚", name: "Trứng", price: 20, x: 5, y: 7 }
+        ];
+
+        // ATM
+        const atms = [{x: 0, y: 9}, {x: 9, y: 0}];
+
+        // Câu hỏi
+        const questions = [
+            { q: "125 x 4 = ?", a: ["450", "500", "550", "600"], c: 1 },
+            { q: "840 : 4 = ?", a: ["210", "220", "200", "205"], c: 0 },
+            { q: "250 x 3 = ?", a: ["700", "750", "800", "650"], c: 1 },
+            { q: "660 : 6 + 40 = ?", a: ["140", "150", "160", "130"], c: 1 },
+            { q: "111 x 8 = ?", a: ["888", "818", "881", "808"], c: 0 }
+        ];
+
+        function createGrid() {
+            const container = document.getElementById('grid');
+            container.innerHTML = '';
+            for(let y=0; y<gridSide; y++) {
+                for(let x=0; x<gridSide; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    
+                    // Vẽ người chơi
+                    if(x === player.x && y === player.y) {
+                        cell.classList.add('player');
+                    }
+                    // Vẽ ATM
+                    else if(atms.some(a => a.x === x && a.y === y)) {
+                        cell.classList.add('atm');
+                    }
+                    // Vẽ Kệ và Đồ ăn
+                    else {
+                        const food = foods.find(f => f.x === x && f.y === y);
+                        if(food) {
+                            cell.classList.add('shelf', 'item-on-shelf');
+                            cell.setAttribute('data-emoji', food.emoji);
+                        } else if ([2,7].includes(x) && y >=2 && y<=5 || y===7 && x>=4 && x<=6) {
+                            cell.classList.add('shelf'); // Kệ trống
+                        }
+                    }
+                    container.appendChild(cell);
+                }
+            }
+            updateUI();
+        }
+
+        window.onkeydown = (e) => {
+            if(document.getElementById('quiz-bg').style.display === 'flex') return;
+            if(e.key === 'ArrowUp' && player.y > 0) player.y--;
+            if(e.key === 'ArrowDown' && player.y < 9) player.y++;
+            if(e.key === 'ArrowLeft' && player.x > 0) player.x--;
+            if(e.key === 'ArrowRight' && player.x < 9) player.x++;
+            
+            checkPos();
+            createGrid();
+        };
+
+        function checkPos() {
+            // Check ATM
+            if(atms.some(a => a.x === player.x && a.y === player.y)) {
+                openQuiz();
+                return;
+            }
+            // Check Food
+            const foodIdx = foods.findIndex(f => f.x === player.x && f.y === player.y);
+            if(foodIdx !== -1) {
+                const item = foods[foodIdx];
+                if(player.money >= item.price) {
+                    player.money -= item.price;
+                    cart.push(item);
+                    foods.splice(foodIdx, 1); // Lấy khỏi kệ
+                    alert(`Đã thêm ${item.name} vào giỏ hàng!`);
+                } else {
+                    alert(`Bạn thiếu ${item.price - player.money}$ để mua món này!`);
+                }
+            }
+        }
+
+        function openQuiz() {
+            const modal = document.getElementById('quiz-bg');
+            const qData = questions[Math.floor(Math.random() * questions.length)];
+            document.getElementById('question').innerText = qData.q;
+            const ansDiv = document.getElementById('answers');
+            ansDiv.innerHTML = '';
+            
+            qData.a.forEach((txt, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'ans-btn';
+                btn.innerText = txt;
+                btn.onclick = () => {
+                    if(i === qData.c) {
+                        player.money += 50;
+                        alert("Đúng rồi! Ví của bạn đã tăng +50$ 💰");
+                    } else {
+                        player.hp -= 20;
+                        alert("Sai rồi! Mã pin không khớp, bạn bị trừ 20 HP 💔");
+                    }
+                    modal.style.display = 'none';
+                    createGrid();
+                };
+                ansDiv.appendChild(btn);
+            });
+            modal.style.display = 'flex';
+        }
+
+        function updateUI() {
+            document.getElementById('money').innerText = player.money;
+            document.getElementById('hp').innerText = player.hp;
+            
+            const cartDiv = document.getElementById('cart-content');
+            const totalSpan = document.getElementById('total-price');
+            
+            if(cart.length > 0) {
+                cartDiv.innerHTML = cart.map(i => `
+                    <div class="cart-item">
+                        <span>${i.emoji} ${i.name}</span>
+                        <span>${i.price}$</span>
+                    </div>
+                `).join('');
+                const total = cart.reduce((sum, item) => sum + item.price, 0);
+                totalSpan.innerText = total + "$";
+            }
+
+            if(player.hp <= 0) {
+                alert("Bạn bị xỉu vì đói! Hãy chơi lại nhé.");
+                location.reload();
+            }
+        }
+
+        createGrid();
+    </script>
+</body>
+</html>

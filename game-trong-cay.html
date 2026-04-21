@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Khu Vườn Trí Tuệ - 5 Cấp Độ Tiến Hóa</title>
+    <style>
+        :root {
+            --sky: #81ecec;
+            --grass: #00b894;
+            --danger: #d63031;
+        }
+
+        body {
+            background: linear-gradient(to bottom, var(--sky), #fab1a0);
+            font-family: 'Segoe UI', sans-serif;
+            display: flex; flex-direction: column; align-items: center;
+            margin: 0; padding: 20px; min-height: 100vh;
+        }
+
+        /* Khung cảnh vườn */
+        #garden {
+            position: relative;
+            width: 650px; height: 420px;
+            background: white; border-radius: 30px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+            display: flex; justify-content: space-around; align-items: flex-end;
+            padding-bottom: 50px; border: 8px solid #fff;
+            margin-top: 20px;
+            background: url('https://www.transparenttextures.com/patterns/cubes.png'), #fff;
+        }
+
+        /* Bạn nhỏ */
+        #character { text-align: center; width: 200px; }
+        #char-emoji { font-size: 100px; display: block; transition: 0.3s; }
+        #speech-bubble { 
+            background: #2d3436; color: white; padding: 10px 15px; 
+            border-radius: 15px; margin-bottom: 15px; font-size: 16px;
+            min-height: 24px; position: relative;
+        }
+        #speech-bubble::after {
+            content: ''; position: absolute; bottom: -10px; left: 50%;
+            border: 10px solid transparent; border-top-color: #2d3436; margin-left: -10px;
+        }
+
+        /* Cái cây tiến hóa */
+        #tree-stage { 
+            font-size: 180px; 
+            transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55); 
+            filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));
+        }
+
+        /* Nút Chăm Sóc */
+        #care-btn {
+            background: #0984e3; color: white; border: none;
+            padding: 18px 50px; font-size: 24px; font-weight: bold;
+            border-radius: 50px; cursor: pointer; margin-top: 30px;
+            box-shadow: 0 6px 0 #074b81; transition: 0.1s;
+        }
+        #care-btn:active { transform: translateY(3px); box-shadow: 0 3px 0 #074b81; }
+        #care-btn:disabled { background: #b2bec3; box-shadow: none; cursor: not-allowed; }
+
+        /* Câu hỏi Popup */
+        #quiz-box {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: white; padding: 30px; border-radius: 25px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+            display: none; width: 380px; text-align: center; z-index: 10;
+            border: 4px solid var(--grass);
+        }
+
+        .option {
+            display: block; width: 100%; margin: 12px 0;
+            padding: 15px; border-radius: 15px; border: 2px solid #dfe6e9;
+            background: #f1f2f6; cursor: pointer; font-size: 20px; font-weight: 500;
+        }
+        .option:hover { background: var(--grass); color: white; border-color: var(--grass); }
+
+        #heart-monitor { font-size: 24px; margin-bottom: 10px; background: white; padding: 10px 25px; border-radius: 30px; }
+    </style>
+</head>
+<body>
+
+    <h1 style="color: #2d3436; text-shadow: 2px 2px white;">🌳 THỬ THÁCH 5 BƯỚC TRƯỞNG THÀNH 🌸</h1>
+
+    <div id="heart-monitor">
+        Sức sống cây: <span id="hearts">❤️❤️❤️</span> | Tiến trình: <span id="progress">0/5</span>
+    </div>
+
+    <div id="garden">
+        <div id="character">
+            <div id="speech-bubble" id="msg">Tớ đang đợi bạn...</div>
+            <span id="char-emoji">🧒</span>
+        </div>
+
+        <div id="tree-stage">☁️</div> </div>
+
+    <button id="care-btn" onclick="openCareQuiz()">🚿 CHĂM SÓC CÂY (LẦN <span id="next-lv">1</span>)</button>
+
+    <div id="quiz-box">
+        <h2 id="question" style="color: #0984e3;">?</h2>
+        <div id="ans-list"></div>
+    </div>
+
+    <script>
+        let currentStep = 0; 
+        let errors = 0;
+        const maxErrors = 3;
+
+        // 5 giai đoạn tiến hóa
+        const stages = ["🌱", "🌿", "🪴", "🌳", "🌸"];
+        
+        // 5 câu hỏi tương ứng 5 cấp độ
+        const questions = [
+            { q: "Cấp 1: 125 x 4 = ?", a: ["400", "500", "600", "450"], c: 1 },
+            { q: "Cấp 2: 960 : 3 = ?", a: ["320", "300", "310", "330"], c: 0 },
+            { q: "Cấp 3: 250 x 3 - 50 = ?", a: ["600", "750", "700", "800"], c: 2 },
+            { q: "Cấp 4: 1000 : 8 = ?", a: ["120", "125", "130", "150"], c: 1 },
+            { q: "Cấp 5: 111 x 9 + 1 = ?", a: ["999", "1000", "991", "1001"], c: 1 }
+        ];
+
+        function init() {
+            document.getElementById('tree-stage').innerText = "🕳️"; // Đất trống
+            updateStatus();
+        }
+
+        function updateStatus() {
+            // Cập nhật tim
+            let h = "";
+            for(let i=0; i < (maxErrors - errors); i++) h += "❤️";
+            document.getElementById('hearts').innerText = h || "💔";
+            document.getElementById('progress').innerText = `${currentStep}/5`;
+            document.getElementById('next-lv').innerText = currentStep + 1;
+        }
+
+        function openCareQuiz() {
+            if (currentStep >= 5 || errors >= maxErrors) return;
+
+            const box = document.getElementById('quiz-box');
+            const qData = questions[currentStep]; // Lấy câu hỏi theo cấp độ hiện tại
+            
+            document.getElementById('question').innerText = qData.q;
+            const list = document.getElementById('ans-list');
+            list.innerHTML = '';
+
+            qData.a.forEach((txt, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'option';
+                btn.innerText = txt;
+                btn.onclick = () => checkResult(i, qData.c);
+                list.appendChild(btn);
+            });
+
+            box.style.display = 'block';
+            document.getElementById('care-btn').disabled = true;
+        }
+
+        function checkResult(userIdx, correctIdx) {
+            const box = document.getElementById('quiz-box');
+            const char = document.getElementById('char-emoji');
+            const bubble = document.getElementById('speech-bubble');
+            const tree = document.getElementById('tree-stage');
+
+            box.style.display = 'none';
+            document.getElementById('care-btn').disabled = false;
+
+            if(userIdx === correctIdx) {
+                // ĐÚNG -> LÊN CẤP
+                tree.innerText = stages[currentStep];
+                currentStep++;
+                char.innerText = "🤩";
+                bubble.innerText = "Tuyệt đỉnh! Cây đang lớn!";
+                
+                // Hiệu ứng rung rinh khi lớn
+                tree.style.transform = "scale(1.3) rotate(10deg)";
+                setTimeout(() => tree.style.transform = "scale(1) rotate(0deg)", 500);
+
+                if(currentStep === 5) {
+                    bubble.innerText = "HOÀN THÀNH! KHU VƯỜN THẬT ĐẸP!";
+                    char.innerText = "👑";
+                    document.getElementById('care-btn').innerText = "CHƠI LẠI";
+                    document.getElementById('care-btn').onclick = () => location.reload();
+                }
+            } else {
+                // SAI -> TRỪ TIM
+                errors++;
+                char.innerText = "😢";
+                bubble.innerText = "Sai rồi... cây héo mất!";
+                
+                if(errors >= maxErrors) {
+                    tree.innerText = "🥀";
+                    char.innerText = "😵";
+                    bubble.innerText = "Cây chết rồi... Bạn cần học thêm!";
+                    document.getElementById('care-btn').disabled = false;
+                    document.getElementById('care-btn').innerText = "THỬ LẠI";
+                    document.getElementById('care-btn').onclick = () => location.reload();
+                }
+            }
+            updateStatus();
+        }
+
+        init();
+    </script>
+</body>
+</html>
