@@ -234,14 +234,42 @@
             document.getElementById('layer-hat').innerText = '';
         }
 
+        // ... các biến money, hp và questions giữ nguyên ...
+
         function updateUI() {
             document.getElementById('money').innerText = `💰 Tiền: ${money}$`;
             document.getElementById('hp').innerText = `❤️ HP: ${hp}`;
+            
+            // KIỂM TRA THUA CUỘC
             if(hp <= 0) {
-                alert("Siêu Mẫu cần nghỉ ngơi! Bấm OK để chơi lại.");
-                location.reload();
+                alert("Người mẫu quá mệt mỏi! Chúng ta sẽ bắt đầu lại từ đầu ✨");
+                restartGame(); // Gọi hàm reset toàn bộ
             }
         }
+
+        // HÀM RESET TOÀN BỘ GAME (Sửa lỗi dính đồ)
+        function restartGame() {
+            // 1. Reset chỉ số
+            money = 0;
+            hp = 100;
+            
+            // 2. Xóa đồ trên người (Quan trọng nhất)
+            document.getElementById('layer-clothes').innerText = ''; 
+            document.getElementById('layer-hat').innerText = '';
+            
+            // 3. Cập nhật lại màn hình
+            updateUI();
+        }
+
+        // Cập nhật lại hàm resetLook để dùng chung logic
+        function resetLook() {
+            document.getElementById('layer-clothes').innerText = '';
+            document.getElementById('layer-hat').innerText = '';
+            alert("Đã cởi bỏ trang phục cũ!");
+        }
+
+        // Đảm bảo khi vừa mở web lên là nhân vật sạch đồ
+        window.onload = restartGame;
     </script>
 </body>
 </html>
