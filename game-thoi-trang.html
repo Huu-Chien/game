@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Siêu Mẫu Toán Học - Studio Thời Trang</title>
+    <style>
+        :root {
+            --bg-color: #fce4ec; /* Màu nền hồng nhạt sang chảnh */
+            --main-pink: #e91e63; /* Màu hồng đậm làm điểm nhấn */
+        }
+
+        body {
+            background-color: var(--bg-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex; flex-direction: column; align-items: center;
+            margin: 0; padding: 20px; color: #333;
+        }
+
+        /* --- Thanh trạng thái --- */
+        #header {
+            display: flex; gap: 30px; background: white;
+            padding: 15px 40px; border-radius: 40px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 25px; font-size: 24px; font-weight: bold;
+            border: 3px solid var(--main-pink);
+        }
+
+        .main-container {
+            display: flex; gap: 50px; align-items: flex-start;
+        }
+
+        /* --- STUDIO NGƯỜI MẪU (SỬA LỚN) --- */
+        #model-studio {
+            width: 350px; /* Tăng kích thước khung */
+            height: 550px;
+            background: white; border-radius: 30px;
+            position: relative; /* Giữ layering */
+            border: 8px solid white;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            overflow: hidden; /* Tránh tràn ra ngoài */
+            display: flex; justify-content: center; align-items: flex-end; /* Căn lề dưới */
+        }
+
+        /* Các lớp layer của người mẫu */
+        .layer {
+            position: absolute;
+            transition: all 0.3s ease-in-out;
+            transform-origin: bottom center; /* Co dãn từ gốc dưới */
+        }
+
+        /* 1. Lớp Thân Nữ (Đổi & Phóng To) */
+        #layer-body-female {
+            z-index: 1;
+            font-size: 380px; /* Phóng to nhân vật nữ cực đại */
+            bottom: -20px; /* Hạ thấp để chân chạm sàn */
+        }
+
+        /* 2. Lớp Quần áo (Sửa Tỉ Lệ) */
+        #layer-clothes {
+            z-index: 3;
+            font-size: 240px; /* Giảm tỉ lệ váy để khớp người mẫu */
+            bottom: 55px;   /* Điều chỉnh độ cao cho khớp thân */
+        }
+
+        /* 3. Lớp Mũ (Sửa Tỉ Lệ) */
+        #layer-hat {
+            z-index: 4;
+            font-size: 110px; /* Điều chỉnh tỉ lệ mũ */
+            top: 35px;       /* Đặt khớp lên đầu */
+        }
+
+        /* --- CỬA HÀNG --- */
+        #shop {
+            width: 450px;
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .item {
+            background: white; padding: 20px; border-radius: 20px;
+            text-align: center; cursor: pointer;
+            border: 3px solid transparent; transition: 0.3s;
+        }
+
+        .item:hover { border-color: var(--main-pink); transform: translateY(-5px); }
+        .item-icon { font-size: 60px; display: block; margin-bottom: 5px; }
+        .item-name { display: block; font-weight: bold; margin-bottom: 3px; }
+        .price { color: #27ae60; font-weight: bold; font-size: 20px; }
+
+        /* --- NÚT RESET --- */
+        .btn-reset { grid-column: 1 / -1; background: #95a5a6; color: white; border: none; padding: 10px; border-radius: 10px; cursor: pointer; }
+
+        /* --- QUIZ --- */
+        #quiz-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); display: none;
+            justify-content: center; align-items: center; z-index: 10;
+        }
+
+        .quiz-box { background: white; padding: 35px; border-radius: 25px; text-align: center; width: 380px; }
+        .ans-btn { display: block; width: 100%; margin: 12px 0; padding: 15px; border-radius: 10px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-size: 20px; }
+        .ans-btn:hover { background: #f1f1f1; }
+
+        #btn-earn {
+            background: var(--main-pink); color: white;
+            padding: 18px 50px; border-radius: 35px; border: none;
+            font-size: 22px; cursor: pointer; margin-top: 25px;
+            box-shadow: 0 6px 0 #c2185b; transition: 0.1s;
+        }
+        #btn-earn:active { transform: translateY(3px); box-shadow: 0 3px 0 #c2185b; }
+    </style>
+</head>
+<body>
+
+    <h1 style="color: var(--main-pink); text-shadow: 1px 1px white;">👗 STUDIO SIÊU MẪU CÁT TƯỜNG 💃</h1>
+
+    <div id="header">
+        <span id="money">💰 Tiền: 0$</span>
+        <span id="hp">❤️ HP: 100</span>
+    </div>
+
+    <div class="main-container">
+        <div id="model-studio">
+            <div id="layer-body-female" class="layer">🧍‍♀️</div>
+            <div id="layer-clothes" class="layer">👗</div> <div id="layer-hat" class="layer">👒</div>     </div>
+
+        <div id="shop">
+            <div class="item" onclick="buy('clothes', '👗', 50)">
+                <span class="item-icon">👗</span>
+                <span class="item-name">Váy Dạ Hội</span>
+                <span class="price">50$</span>
+            </div>
+            <div class="item" onclick="buy('clothes', '🥋', 70)">
+                <span class="item-icon">🥋</span>
+                <span class="item-name">Bộ Võ Akido</span>
+                <span class="price">70$</span>
+            </div>
+            <div class="item" onclick="buy('hat', '👑', 100)">
+                <span class="item-icon">👑</span>
+                <span class="item-name">Vương Miện Vàng</span>
+                <span class="price">100$</span>
+            </div>
+            <div class="item" onclick="buy('hat', '👒', 30)">
+                <span class="item-icon">👒</span>
+                <span class="item-name">Mũ Rộng Vành</span>
+                <span class="price">30$</span>
+            </div>
+            <div class="item" onclick="buy('clothes', '👘', 60)">
+                <span class="item-icon">👘</span>
+                <span class="item-name">Kimono Cách Tân</span>
+                <span class="price">60$</span>
+            </div>
+            <div class="item" onclick="buy('clothes', '🧥', 80)">
+                <span class="item-icon">🧥</span>
+                <span class="item-name">Áo Khoác Sang Chảnh</span>
+                <span class="price">80$</span>
+            </div>
+            <button class="btn-reset item" onclick="resetLook()">❌ Cởi đồ cũ (Miễn phí)</button>
+        </div>
+    </div>
+
+    <button id="btn-earn" onclick="showQuiz()">📝 THỬ THÁCH TOÁN HỌC (KIẾM TIỀN)</button>
+
+    <div id="quiz-overlay">
+        <div class="quiz-box">
+            <h2 id="q-text" style="color:var(--main-pink);">Câu hỏi?</h2>
+            <div id="ans-list"></div>
+        </div>
+    </div>
+
+    <script>
+        let money = 0;
+        let hp = 100;
+
+        const questions = [
+            { q: "Tính: 125 x 4 = ?", a: ["450", "500", "550", "600"], c: 1 },
+            { q: "Tính: 960 : 3 = ?", a: ["320", "300", "330", "310"], c: 0 },
+            { q: "Tính: 150 x 3 + 50 = ?", a: ["450", "550", "500", "400"], c: 2 },
+            { q: "Tính: 720 : 8 - 10 = ?", a: ["70", "85", "90", "80"], c: 3 },
+            { q: "Tính: 222 x 4 = ?", a: ["884", "888", "848", "868"], c: 1 },
+            { q: "Tính: 1000 : 5 + 100 = ?", a: ["300", "250", "350", "200"], c: 0 },
+            { q: "Tính: 450 x 2 = ?", a: ["800", "950", "900", "850"], c: 2 },
+            { q: "Tính: 640 : 2 + 80 = ?", a: ["320", "400", "380", "420"], c: 1 },
+            { q: "Tính: 115 x 5 = ?", a: ["575", "555", "565", "585"], c: 0 },
+            { q: "Tính: 999 - 333 : 3 = ?", a: ["222", "888", "666", "777"], c: 1 }
+        ];
+
+        function showQuiz() {
+            const modal = document.getElementById('quiz-overlay');
+            const q = questions[Math.floor(Math.random() * questions.length)];
+            
+            document.getElementById('q-text').innerText = q.q;
+            const list = document.getElementById('ans-list');
+            list.innerHTML = '';
+
+            q.a.forEach((text, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'ans-btn';
+                btn.innerText = text;
+                btn.onclick = () => {
+                    if(i === q.c) {
+                        money += 50; // Trả lời đúng nhận nhiều tiền hơn
+                        alert("Chính xác! +50$ 💰");
+                    } else {
+                        hp -= 20;
+                        alert(`Sai rồi! Đáp án đúng là ${q.a[q.c]} -20 HP 💔`);
+                    }
+                    modal.style.display = 'none';
+                    updateUI();
+                };
+                list.appendChild(btn);
+            });
+            modal.style.display = 'flex';
+        }
+
+        // HÀM MUA VÀ MẶC ĐỒ CHO NỮ
+        function buy(type, emoji, price) {
+            if (money >= price) {
+                money -= price;
+                if(type === 'clothes') {
+                    document.getElementById('layer-clothes').innerText = emoji;
+                } else if(type === 'hat') {
+                    document.getElementById('layer-hat').innerText = emoji;
+                }
+                updateUI();
+                alert(`Đã khoác ${emoji} lên Siêu Mẫu! ✨`);
+            } else {
+                alert("Bạn mệt quá rồi! Hãy giải toán để kiếm thêm tiền nhé.");
+            }
+        }
+
+        function resetLook() {
+            document.getElementById('layer-clothes').innerText = '';
+            document.getElementById('layer-hat').innerText = '';
+        }
+
+        function updateUI() {
+            document.getElementById('money').innerText = `💰 Tiền: ${money}$`;
+            document.getElementById('hp').innerText = `❤️ HP: ${hp}`;
+            if(hp <= 0) {
+                alert("Siêu Mẫu cần nghỉ ngơi! Bấm OK để chơi lại.");
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
