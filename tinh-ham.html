@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tính ấn DT3Q</title>
+    <style>
+        :root {
+            --primary: #2980b9;
+            --secondary: #27ae60;
+            --bg: #f0f2f5;
+            --card: #ffffff;
+            --text: #2c3e50;
+            --border: #dcdde1;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Roboto, sans-serif; 
+            background: var(--bg); 
+            color: var(--text); 
+            padding: 10px; margin: 0;
+            display: flex; justify-content: center; 
+        }
+
+        .container { 
+            width: 100%; max-width: 480px; 
+            background: var(--card); padding: 20px; 
+            border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+        }
+
+        h2 { 
+            text-align: center; color: var(--primary); font-size: 1.3rem;
+            margin-top: 0; border-bottom: 2px solid var(--primary); padding-bottom: 10px; 
+        }
+
+        .row { display: flex; flex-direction: column; gap: 12px; margin-bottom: 15px; }
+        @media (min-width: 400px) { .row { flex-direction: row; } }
+
+        .col { flex: 1; }
+        label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem; }
+        select, input { 
+            width: 100%; padding: 12px; border: 1px solid var(--border); 
+            border-radius: 8px; font-size: 1rem; box-sizing: border-box;
+        }
+
+        .inventory-title { 
+            color: var(--secondary); margin: 20px 0 10px 0; 
+            font-weight: bold; border-left: 4px solid var(--secondary); padding-left: 10px; 
+        }
+
+        .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .full-width { grid-column: span 2; }
+
+        button { 
+            width: 100%; padding: 16px; background: var(--primary); color: white; 
+            border: none; border-radius: 10px; cursor: pointer; font-size: 1.1rem; 
+            font-weight: bold; touch-action: manipulation;
+        }
+
+        button:active { transform: scale(0.98); background: #1f6391; }
+
+        #result { 
+            margin-top: 20px; padding: 15px; background: #eef2f7; 
+            border-radius: 12px; display: none; border-left: 6px solid var(--secondary); 
+        }
+
+        .res-line { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .total-gold { 
+            text-align: center; font-size: 1.4rem; color: #c0392b; 
+            margin-top: 15px; font-weight: bold; border-top: 1px solid #ccc; padding-top: 15px; 
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Tính ấn DT3Q</h2>
+    
+    <div class="row">
+        <div class="col">
+            <label>Hàm hiện tại</label>
+            <select id="currentRank">
+                <option value="0">Đô Đốc</option>
+                <option value="1">Tướng Soái</option>
+                <option value="2">Đại Tư Không</option>
+                <option value="3">Đại Tư Đồ</option>
+                <option value="4">Đại Tư Mã</option>
+            </select>
+        </div>
+        <div class="col">
+            <label>Hàm mục tiêu</label>
+            <select id="targetRank">
+                <option value="1" selected>Tướng Soái</option>
+                <option value="2">Đại Tư Không</option>
+                <option value="3">Đại Tư Đồ</option>
+                <option value="4">Đại Tư Mã</option>
+                <option value="5">Thái Úy</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="inventory-title">📦 Ấn cao cấp đã ghép sẵn:</div>
+    <div class="grid-inputs">
+        <div><label>Tứ Hải Ấn</label><input type="number" id="have_tuHai" pattern="[0-9]*" value="0"></div>
+        <div><label>Lục Hợp Ấn</label><input type="number" id="have_lucHop" pattern="[0-9]*" value="0"></div>
+    </div>
+
+    <div class="inventory-title">💎 Ấn lẻ trong kho:</div>
+    <div class="grid-inputs">
+        <div><label>Xanh lá</label><input type="number" id="have_300" pattern="[0-9]*" value="0"></div>
+        <div><label>Xanh dương</label><input type="number" id="have_600" pattern="[0-9]*" value="0"></div>
+        <div><label>Tím</label><input type="number" id="have_1200" pattern="[0-9]*" value="0"></div>
+        <div><label>Cam</label><input type="number" id="have_2400" pattern="[0-9]*" value="0"></div>
+        <div class="full-width"><label>Đỏ</label><input type="number" id="have_4800" pattern="[0-9]*" value="0"></div>
+    </div>
+
+    <button onclick="calculate()">TÍNH TOÁN CHI PHÍ</button>
+
+    <div id="result"></div>
+</div>
+
+<script>
+    const stepCosts = [
+        { g: 0, b: 0, p: 0, o: 0, r: 24, tu: 0, luc: 0 }, // Lên Tướng Soái
+        { tu: 5 },  // Lên Đại Tư Không
+        { tu: 10 }, // Lên Đại Tư Đồ
+        { luc: 8 }, // Lên Đại Tư Mã
+        { luc: 16 } // Lên Thái Úy
+    ];
+
+    function calculate() {
+        const startIdx = parseInt(document.getElementById('currentRank').value);
+        const endIdx = parseInt(document.getElementById('targetRank').value);
+
+        if (startIdx >= endIdx) {
+            alert("Hàm mục tiêu phải cao hơn hàm hiện tại!");
+            return;
+        }
+
+        // 1. Tính tổng số Tứ Hải / Lục Hợp / Ấn Đỏ cần thiết
+        let totalTuHai = 0;
+        let totalLucHop = 0;
+        let totalRedBase = 0;
+
+        for (let i = startIdx; i < endIdx; i++) {
+            if (stepCosts[i].r) totalRedBase += stepCosts[i].r;
+            if (stepCosts[i].tu) totalTuHai += stepCosts[i].tu;
+            if (stepCosts[i].luc) totalLucHop += stepCosts[i].luc;
+        }
+
+        // 2. Trừ đi số Tứ Hải/Lục Hợp đang có sẵn
+        let needTuHai = Math.max(0, totalTuHai - document.getElementById('have_tuHai').value);
+        let needLucHop = Math.max(0, totalLucHop - document.getElementById('have_lucHop').value);
+
+        // 3. Quy đổi tất cả ra Ấn Lẻ (Xanh -> Đỏ)
+        // 1 Tứ Hải = 4 mỗi loại
+        // 1 Lục Hợp = 6 mỗi loại + 1 Tứ Hải (vậy là 6 + 4 = 10 mỗi loại)
+        
+        let req = {
+            g: (needTuHai * 4) + (needLucHop * 6),
+            b: (needTuHai * 4) + (needLucHop * 6),
+            p: (needTuHai * 4) + (needLucHop * 6),
+            o: (needTuHai * 4) + (needLucHop * 6),
+            r: (needTuHai * 4) + (needLucHop * 6) + totalRedBase
+        };
+
+        // 4. Trừ đi ấn lẻ trong kho
+        const missing = {
+            g: Math.max(0, req.g - document.getElementById('have_300').value),
+            b: Math.max(0, req.b - document.getElementById('have_600').value),
+            p: Math.max(0, req.p - document.getElementById('have_1200').value),
+            o: Math.max(0, req.o - document.getElementById('have_2400').value),
+            r: Math.max(0, req.r - document.getElementById('have_4800').value)
+        };
+
+        const gold = (missing.g*300)+(missing.b*600)+(missing.p*1200)+(missing.o*2400)+(missing.r*4800);
+
+        // 5. Hiển thị kết quả
+        let html = `<strong>Cần bổ sung thêm:</strong><br><br>`;
+        if (needTuHai > 0) html += `<div class="res-line"><span>Tứ Hải Ấn còn thiếu:</span> <b>${needTuHai}</b></div>`;
+        if (needLucHop > 0) html += `<div class="res-line"><span>Lục Hợp Ấn còn thiếu:</span> <b>${needLucHop}</b></div>`;
+        html += `<hr style="border:0; border-top:1px dashed #ccc; margin:10px 0;">`;
+        html += `<div class="res-line"><span>Xanh lá:</span> <b>${missing.g}</b></div>`;
+        html += `<div class="res-line"><span>Xanh dương:</span> <b>${missing.b}</b></div>`;
+        html += `<div class="res-line"><span>Tím:</span> <b>${missing.p}</b></div>`;
+        html += `<div class="res-line"><span>Cam:</span> <b>${missing.o}</b></div>`;
+        html += `<div class="res-line"><span>Đỏ:</span> <b>${missing.r}</b></div>`;
+        html += `<div class="total-gold">Tổng Vàng: ${gold.toLocaleString()}</div>`;
+
+        const resDiv = document.getElementById('result');
+        resDiv.innerHTML = html;
+        resDiv.style.display = 'block';
+        resDiv.scrollIntoView({ behavior: 'smooth' });
+    }
+</script>
+</body>
+</html>
